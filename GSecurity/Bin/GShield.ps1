@@ -31,7 +31,7 @@ function Kill-ProcessesOnPorts {
 
 Start-Job -ScriptBlock {
     while ($true) {
-	Remove-SuspiciousDLLs
-	Kill-ProcessesOnPorts
+        Remove-SuspiciousDLLs
+        Kill-ProcessesOnPorts
     }
 }

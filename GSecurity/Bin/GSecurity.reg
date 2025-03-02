@@ -1,5 +1,8 @@
 Windows Registry Editor Version 5.00
 
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\BTHMODEM]
+"Start"=dword:00000004
+
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\gpsvc]
 "Start"=dword:00000004
 

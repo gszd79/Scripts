@@ -1,0 +1,7 @@
+2025-02-28 14:27:53,405 - WARNING - Could not determine type for C:\: Command '['wmic', 'diskdrive', 'where', "DeviceID='C:\\'", 'get', 'MediaType']' returned non-zero exit status 2147749911.
+2025-02-28 14:27:53,478 - WARNING - Could not determine type for D:\: Command '['wmic', 'diskdrive', 'where', "DeviceID='D:\\'", 'get', 'MediaType']' returned non-zero exit status 2147749911.
+2025-02-28 14:27:53,549 - WARNING - Could not determine type for E:\: Command '['wmic', 'diskdrive', 'where', "DeviceID='E:\\'", 'get', 'MediaType']' returned non-zero exit status 2147749911.
+2025-02-28 14:27:53,621 - WARNING - Could not determine type for F:\: Command '['wmic', 'diskdrive', 'where', "DeviceID='F:\\'", 'get', 'MediaType']' returned non-zero exit status 2147749911.
+2025-02-28 14:27:53,693 - WARNING - Could not determine type for G:\: Command '['wmic', 'diskdrive', 'where', "DeviceID='G:\\'", 'get', 'MediaType']' returned non-zero exit status 2147749911.
+2025-02-28 14:27:53,765 - WARNING - Could not determine type for H:\: Command '['wmic', 'diskdrive', 'where', "DeviceID='H:\\'", 'get', 'MediaType']' returned non-zero exit status 2147749911.
+2025-02-28 14:27:53,765 - CRITICAL - GCache failed: No SSD or HDD detected!

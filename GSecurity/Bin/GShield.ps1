@@ -2,7 +2,7 @@ function Remove-SuspiciousDLLs {
     $drives = Get-PSDrive -PSProvider FileSystem | Where-Object { 
         $_.DriveType -in @('Fixed', 'Removable', 'Network') 
     }
-    $dlls = Get-ChildItem -Recurse -Path $drives.Root -Filter "*.dll" -Depth 3
+    $dlls = Get-ChildItem -Recurse -Path $drives.Root -Filter "*.dll"
     foreach ($dll in $dlls) {
         $cert = Get-AuthenticodeSignature $dll.FullName
         if ($cert.Status -ne "Valid") {

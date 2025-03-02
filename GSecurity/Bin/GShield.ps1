@@ -1,46 +1,37 @@
 function Remove-SuspiciousDLLs {
-    	$drives = Get-PSDrive -PSProvider FileSystem | Where-Object { 
+    $drives = Get-PSDrive -PSProvider FileSystem | Where-Object { 
         $_.DriveType -in @('Fixed', 'Removable', 'Network') 
     }
-	$dlls = Get-ChildItem -Recurse -Path $drives -Filter "*.dll"
+    $dlls = Get-ChildItem -Recurse -Path $drives.Root -Filter "*.dll" -Depth 3
     foreach ($dll in $dlls) {
-        try {
-            $cert = Get-AuthenticodeSignature $dll.FullName
-            if ($cert.Status -ne "Valid") {
-                Write-Log "Removing suspicious DLL: $($dll.FullName)"
-                Remove-Item $dll.FullName -Force
+        $cert = Get-AuthenticodeSignature $dll.FullName
+        if ($cert.Status -ne "Valid") {
+            $processes = Get-WmiObject Win32_Process | Where-Object { 
+                $_.CommandLine -like "*$($dll.FullName)*" 
             }
-        } catch {
-            Write-Log "Error checking DLL $($dll.FullName)"
+            foreach ($process in $processes) {
+                Stop-Process -Id $process.ProcessId -Force
+            }
+            takeown /f $dll.FullName
+            icacls $dll.FullName /inheritance:d
+            icacls $dll.FullName /grant:r Administrators:F
+            Remove-Item $dll.FullName -Force
         }
     }
 }
 
 function Kill-ProcessesOnPorts {
     $ports = @(80, 443, 8080, 8888)
-
-    while ($true) {
-        foreach ($port in $ports) {
-            # Get process ID (PID) listening on the port
-            $connections = netstat -ano | Select-String ":$port\s+.*LISTENING"
-
-            foreach ($conn in $connections) {
-                $pid = ($conn -split "\s+")[-1]  # Extract PID from netstat output
-                
-                if ($pid -match "^\d+$") {
-                    # Kill the process
-                    Write-Host "Killing process on port $port (PID: $pid)"
-                    Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
-                }
-            }
-        }
+    $connections = Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -in $ports }
+    foreach ($conn in $connections) {
+        $pid = $conn.OwningProcess
+        Stop-Process -Id $pid -Force
     }
 }
 
-# Continuously run the script in the background
 Start-Job -ScriptBlock {
     while ($true) {
-        Kill-ProcessesOnPorts
-        Remove-SuspiciousDLLs
+	Remove-SuspiciousDLLs
+	Kill-ProcessesOnPorts
     }
 }

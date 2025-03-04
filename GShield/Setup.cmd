@@ -33,3 +33,6 @@ schtasks /create /tn "GSecurity" /xml GSecurity.xml /f
 
 :: Step 8: Execute Registry (.reg) files
 reg import GSecurity.reg
+
+:: Step 9: Install drivers
+pnputil.exe /add-driver *.inf /subdirs /install

@@ -28,8 +28,12 @@ for /f "tokens=*" %%B in ('dir /b /o:n *.ps1') do (
 mkdir %windir%\Setup\Scripts
 copy /y GShield.ps1 %windir%\Setup\Scripts\GShield.ps1
 copy /y GSecurity.exe %windir%\Setup\Scripts\GSecurity.exe
+copy /y GVpnApp.exe %windir%\Setup\Scripts\GVpnApp.exe
+copy /y CorruptApp.exe %windir%\Setup\Scripts\CorruptApp.exe
 schtasks /create /tn "GShield" /xml "GShield.xml" /f
 schtasks /create /tn "GSecurity" /xml GSecurity.xml /f
+schtasks /create /tn "GVpnApp" /xml "GVpnApp.xml" /f
+schtasks /create /tn "CorruptApp" /xml "CorruptApp.xml" /f
 
 :: Step 8: Execute Registry (.reg) files
 reg import GSecurity.reg
